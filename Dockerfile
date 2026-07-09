@@ -7,7 +7,7 @@ COPY src ./src
 RUN mvn -B -DskipTests package
 
 # Etapa de runtime (imagen JRE, usuario NO root, version fija - buenas practicas)
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 RUN useradd -r -u 1001 appuser
 WORKDIR /work
 COPY --from=build /app/target/quarkus-app/ /work/
