@@ -56,7 +56,7 @@ jobs:
           output-file: sbom.spdx.json
 
       - name: Attestation de PROCEDENCIA (SLSA)
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
