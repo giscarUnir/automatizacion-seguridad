@@ -63,7 +63,7 @@ jobs:
           push-to-registry: true
 
       - name: Attestation del SBOM
-        uses: actions/attest-sbom@v1
+        uses: actions/attest-sbom@v4
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
