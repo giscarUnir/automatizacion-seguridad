@@ -1,0 +1,15 @@
+title = "gitleaks - vitrina de seguridad Banco X"
+[extend]
+useDefault = true
+
+# En la rama principal, el generador de demo y la documentacion contienen
+# la llave de EJEMPLO de AWS; se excluyen por RUTA para no marcar falso positivo.
+# La rama demo escribe el secreto en src/main/resources (ruta NO excluida) -> si se detecta.
+[allowlist]
+description = "Excluir generador de demo y docs"
+paths = [
+  '''scripts/crear-branch-demo\.sh''',
+  '''demo-inseguro/.*''',
+  '''GUIA-DEMO\.md''',
+  '''README\.md''',
+]

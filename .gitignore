@@ -1,0 +1,24 @@
+# Build
+target/
+*.class
+
+# Backups / temporales
+*.bak
+*.log
+app.log
+
+# SARIF / reportes locales
+*.sarif
+results_sarif.sarif
+sbom.spdx.json
+
+# IDE / SO
+.idea/
+.vscode/
+.DS_Store
+
+# Render de QA de la presentación (solo se versiona el .pptx)
+doc/slide-*.jpg
+doc/*.pdf
+doc/*.tmp
+doc/.~lock*

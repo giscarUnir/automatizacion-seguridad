@@ -1,0 +1,27 @@
+# Capa SAST NATIVA de GitHub. Analisis semantico de codigo Java.
+name: codeql-sast
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          build-mode: autobuild
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:java-kotlin"
