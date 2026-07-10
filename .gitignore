@@ -22,3 +22,6 @@ doc/slide-*.jpg
 doc/*.pdf
 doc/*.tmp
 doc/.~lock*
+
+# Temporales de Office
+~$*
