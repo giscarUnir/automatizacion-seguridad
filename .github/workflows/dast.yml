@@ -30,7 +30,7 @@ jobs:
           mvn -B -DskipTests package
           nohup java -jar target/quarkus-app/quarkus-run.jar > app.log 2>&1 &
           echo $! > app.pid
-          for i in $(seq 1 40); do
+          for _ in $(seq 1 40); do
             if curl -fsS http://localhost:8080/q/health/ready; then
               break
             fi
