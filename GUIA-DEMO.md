@@ -47,6 +47,10 @@ En `main` sale limpio; si primero corres `crear-branch-demo.sh`, verás los hall
 
 ## La demo en vivo (10–12 min)
 
+> Tiempo técnico observado: el flujo completo limpio terminó en 2m19 y las
+> rondas verdes recientes promediaron 2m22. Los 10–12 minutos de esta guía son
+> tiempo de exposición: navegación, explicación y preguntas.
+
 ### Escena 1 — "El pipeline en verde" (1 min)
 Abre la pestaña **Actions** y muestra `main` con todos los workflows en verde:
 build, CodeQL, security-oss (Gitleaks/Semgrep/Trivy/Checkov), supply-chain, DAST
@@ -96,15 +100,17 @@ mover el build a un workflow reutilizable gobernado por el banco."*
 - **Nivel 1 — OSS (portable):** Gitleaks, Semgrep, Trivy, Checkov, ZAP. Corren en
   cualquier plan, público o privado. Es la base que controlo y audito.
 - **Nivel 2 — Nativo GitHub (premium):** CodeQL, Secret Scanning + Push Protection,
-  Artifact Attestations, Copilot Autofix. Lo último en seguridad, y **el Enterprise
-  del banco ya lo incluye**.
+  Artifact Attestations y Copilot Autofix. Para repositorios privados, **no
+  afirmar que Enterprise base lo incluye todo**: Code Security y Secret Protection
+  son productos/licencias que deben confirmarse en el contrato del banco. Las
+  attestations privadas requieren GitHub Enterprise Cloud.
 - **Gobierno:** Rulesets que exigen checks y resultados de code scanning; un
   riesgo sobre el umbral no se mergea sin corrección o excepción autorizada.
 
 > Frase de cierre sugerida: *"Diseñé un pipeline con 7 capas de seguridad que
-> funcionan en cualquier entorno; sobre el GitHub Enterprise del banco, además,
-> se potencian con CodeQL, push protection y firma de procedencia nativas. Lo
-> mejor de ambos mundos, con decisiones de riesgo trazables antes de producción."*
+> pueden ejecutarse como base portable. Sobre el GitHub Enterprise del banco,
+> CodeQL, push protection y procedencia nativa se habilitan según despliegue y
+> licencias. El valor es una decisión de riesgo trazable antes de producción."*
 
 ---
 
