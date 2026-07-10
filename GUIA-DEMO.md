@@ -24,7 +24,11 @@ push protection, procedencia SLSA).*
    - CodeQL: deja el workflow `codeql.yml` (ya incluido) o usa "Default setup".
 3. (Opcional pero recomendado) **Ruleset** que exija los checks para mergear:
    Settings > Rules > New ruleset → Require status checks →
-   marca `secretos-gitleaks`, `dependency-review`, `codeql-sast`.
+   marca `build-test`, `review`, `secretos-gitleaks`, `sast-semgrep`,
+   `sca-trivy-fs`, `iac-checkov`, `zap-baseline`, `imagen-y-procedencia`,
+   `actionlint` y `zizmor`.
+   Agrega también **Require code scanning results** para CodeQL con umbral
+   *High or higher*.
    Esto hace que el bloqueo sea visible ("no se puede mergear").
 
 > Deja la rama `main` ya subida y verde: es tu punto de partida "todo limpio".
@@ -45,7 +49,8 @@ En `main` sale limpio; si primero corres `crear-branch-demo.sh`, verás los hall
 
 ### Escena 1 — "El pipeline en verde" (1 min)
 Abre la pestaña **Actions** y muestra `main` con todos los workflows en verde:
-build, CodeQL, security-oss (gitleaks/semgrep/trivy/checkov), supply-chain, dast.
+build, CodeQL, security-oss (Gitleaks/Semgrep/Trivy/Checkov), supply-chain, DAST
+y seguridad de los propios workflows.
 Mensaje: *"cada push pasa por 7 capas de seguridad automáticas."*
 
 ### Escena 2 — "Introduzco un cambio inseguro" (2 min)
@@ -65,12 +70,12 @@ En el PR, recorre los checks y la pestaña de conversación:
 |---|---|---|
 | Check **en rojo** `secretos-gitleaks` | Secretos | El job falla: encontró la credencial |
 | Check **en rojo** `dependency-review` | SCA | Bloquea el PR: dependencia con CVE (commons-text) |
-| Alertas de **Code scanning** (CodeQL) | SAST nativo | Inyección SQL detectada, con explicación |
-| Anotaciones de **Semgrep / Trivy / Checkov** | SAST/Contenedor/IaC | Hallazgos sobre las líneas del PR |
+| Regla **Code scanning results** | SAST nativo | CodeQL bloquea alertas altas o críticas del cambio |
+| Checks **Semgrep / Trivy / Checkov** | SAST/SCA/IaC | Fallan y publican el detalle en SARIF |
 | Pestaña **Security** | Panel unificado | Todos los hallazgos en un solo lugar |
 
-Remata: *"el merge está bloqueado; ningún cambio inseguro llega a la rama
-principal sin intervención humana."*
+Remata: *"el merge está bloqueado: el riesgo debe corregirse o pasar por una
+excepción aprobada y trazable."*
 
 ### Escena 4 — "Push protection en acción" (opcional, 1 min)
 Si activaste push protection, intenta empujar un secreto directamente y muestra
@@ -78,10 +83,11 @@ cómo **GitHub bloquea el push** en el momento (antes de que entre al repo).
 
 ### Escena 5 — "Procedencia y SBOM" (2 min)
 En `main`, abre el workflow `supply-chain` y muestra:
-- la **imagen firmada** con Artifact Attestations (SLSA build level 3),
+- la imagen con Artifact Attestations (base SLSA Build L2),
 - el **SBOM** (inventario de componentes) publicado como artefacto.
-Mensaje: *"no solo revisamos el código; certificamos criptográficamente cómo y
-dónde se construyó la imagen — trazabilidad para auditoría y cumplimiento."*
+Mensaje: *"no solo revisamos el código; dejamos una declaración verificable de
+cómo y dónde se construyó la imagen. Para llegar a SLSA L3, el siguiente paso es
+mover el build a un workflow reutilizable gobernado por el banco."*
 
 ---
 
@@ -92,12 +98,13 @@ dónde se construyó la imagen — trazabilidad para auditoría y cumplimiento."
 - **Nivel 2 — Nativo GitHub (premium):** CodeQL, Secret Scanning + Push Protection,
   Artifact Attestations, Copilot Autofix. Lo último en seguridad, y **el Enterprise
   del banco ya lo incluye**.
-- **Gobierno:** Rulesets que exigen todos los checks; nada inseguro se mergea.
+- **Gobierno:** Rulesets que exigen checks y resultados de code scanning; un
+  riesgo sobre el umbral no se mergea sin corrección o excepción autorizada.
 
 > Frase de cierre sugerida: *"Diseñé un pipeline con 7 capas de seguridad que
 > funcionan en cualquier entorno; sobre el GitHub Enterprise del banco, además,
 > se potencian con CodeQL, push protection y firma de procedencia nativas. Lo
-> mejor de ambos mundos, y ningún código inseguro llega a producción."*
+> mejor de ambos mundos, con decisiones de riesgo trazables antes de producción."*
 
 ---
 

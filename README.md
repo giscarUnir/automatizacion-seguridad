@@ -2,15 +2,15 @@
 
 Microservicio de demostración en **Java 21 / Quarkus** con un CRUD de clientes
 (datos ficticios), montado como **vitrina pública** para mostrar un pipeline de
-seguridad completo en GitHub: controles **nativos** de GitHub y **open-source**,
-con escenarios que **evidencian** que cada control funciona.
+seguridad en GitHub: controles **nativos** y **open-source**, con umbrales,
+evidencia y escenarios que demuestran qué controles informan y cuáles bloquean.
 
 > Repositorio de demostración. No contiene datos ni código reales de ningún banco.
 
 ## Para qué sirve
 
 Acompaña una propuesta de automatización DevSecOps. La idea: enseñar en vivo cómo
-el pipeline **detecta y bloquea** problemas de seguridad antes del merge, cubriendo
+el pipeline **detecta y bloquea según una política definida** antes del merge, cubriendo
 las capas del modelo DevSecOps (secretos, SAST, SCA, contenedor, IaC, DAST y
 cadena de suministro).
 
@@ -38,7 +38,35 @@ curl localhost:8080/banco-x/clientes/v1
 | Contenedor | Trivy (imagen) | OSS | `supply-chain.yml` |
 | IaC / Kubernetes | Checkov | OSS | `security-oss.yml` |
 | DAST | OWASP ZAP | OSS | `dast.yml` |
-| Cadena de suministro | SBOM (Syft) + Artifact Attestations (SLSA) | **nativo** | `supply-chain.yml` |
+| Cadena de suministro | SBOM (Syft) + Artifact Attestations | **nativo** | `supply-chain.yml` |
+| Seguridad del pipeline | actionlint + zizmor + acciones fijadas por SHA | OSS | `workflow-security.yml` |
+
+## Qué bloquea hoy
+
+- CI y pruebas fallidas.
+- Secretos detectados por Gitleaks.
+- Hallazgos de Semgrep configurados como error.
+- CVE altos o críticos detectados por Trivy y Dependency Review.
+- Configuraciones inseguras detectadas por Checkov.
+- Alertas DAST no aceptadas en la política de ZAP.
+- Publicación de imagen: primero se escanea; solo después se publica y se atesta.
+- Workflows inseguros o inválidos detectados por actionlint y zizmor.
+
+Los jobs solo se convierten en una compuerta institucional cuando el ruleset de
+`main` los exige. Para CodeQL, además se usa la regla específica de protección de
+code scanning: el job de análisis publica resultados, pero no falla por cada alerta.
+
+## Alcance correcto para banca
+
+Esta vitrina es una base robusta de **DevSecOps y cadena de suministro**, no una
+aplicación bancaria lista para producción. Un servicio real también necesita IAM,
+autorización por rol, cifrado y gestión de llaves, auditoría inmutable, protección
+de datos, API gateway/WAF, rate limiting, monitoreo/SOC, resiliencia y un proceso
+formal de excepciones.
+
+Artifact Attestations aporta por sí solo una base SLSA Build L2. Llegar a L3 exige,
+entre otros requisitos, instrucciones de build conocidas y aisladas mediante un
+workflow reutilizable gobernado por la organización.
 
 ## Estructura
 

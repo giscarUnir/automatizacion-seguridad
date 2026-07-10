@@ -17,16 +17,17 @@ git checkout main 2>/dev/null || true
 git checkout -b "$BRANCH"
 
 echo ">> 1/5 Secreto en el codigo (lo detectan: Gitleaks + Secret Scanning nativo)"
-cat > src/main/resources/aws-credentials.properties <<'P'
+AWS_ACCESS_KEY_ID="AKIA""QWERTYUIOPASDFGH"
+AWS_SECRET_ACCESS_KEY="qwertyuiopasdfghjklzxcvbnm""qwertyuiopasdfgh"
+cat > src/main/resources/aws-credentials.properties <<P
 # ARCHIVO DE DEMO — credenciales FICTICIAS para evidenciar el control de secretos.
-# La llave AKIAIOSFODNN7EXAMPLE es la de ejemplo de la documentacion de AWS (no funcional).
-aws.accessKeyId=AKIAIOSFODNN7EXAMPLE
-aws.secretAccessKey=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+aws.accessKeyId=${AWS_ACCESS_KEY_ID}
+aws.secretAccessKey=${AWS_SECRET_ACCESS_KEY}
 db.password=SuperSecret123!
 P
 
 echo ">> 2/5 Inyeccion SQL + credencial hardcodeada (lo detectan: CodeQL + Semgrep)"
-cat > src/main/java/com/bancox/clientes/BusquedaInseguraResource.java <<'J'
+cat > src/main/java/com/bancox/clientes/BusquedaInseguraResource.java <<J
 package com.bancox.clientes;
 
 import jakarta.inject.Inject;
@@ -51,7 +52,7 @@ public class BusquedaInseguraResource {
     EntityManager em;
 
     // Credencial hardcodeada (DEMO) -> CodeQL / Semgrep / Gitleaks
-    private static final String API_KEY = "AKIAIOSFODNN7EXAMPLE";
+    private static final String API_KEY = "${AWS_ACCESS_KEY_ID}";
 
     @GET
     @Path("/buscar")

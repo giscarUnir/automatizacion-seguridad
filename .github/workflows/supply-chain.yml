@@ -4,74 +4,99 @@ name: supply-chain
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
-permissions:
-  contents: read
-  packages: write
-  id-token: write
-  attestations: write
-  security-events: write
+permissions: {}
+
+concurrency:
+  group: supply-chain-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   imagen-y-procedencia:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Normalizar nombre de imagen (minusculas)
         run: echo "IMAGE=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
-      - name: Login en GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      - name: Build & push de la imagen
-        id: build
-        uses: docker/build-push-action@v6
+      - name: Construir imagen local candidata
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
-          push: true
+          load: true
+          push: false
           tags: ${{ env.IMAGE }}:${{ github.sha }}
 
-      - name: Escaneo de imagen (Trivy)
-        uses: aquasecurity/trivy-action@0.24.0
+      - name: Escanear imagen antes de publicar
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}:${{ github.sha }}
           format: sarif
           output: trivy-image.sarif
           severity: CRITICAL,HIGH
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
+          ignore-unfixed: true
+          exit-code: "1"
+          limit-severities-for-sarif: true
+      - uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
+        if: ${{ always() && hashFiles('trivy-image.sarif') != '' }}
         with:
           sarif_file: trivy-image.sarif
           category: trivy-image
 
       - name: Generar SBOM (Syft)
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: ${{ env.IMAGE }}:${{ github.sha }}
           format: spdx-json
           output-file: sbom.spdx.json
 
-      - name: Attestation de PROCEDENCIA (SLSA)
-        uses: actions/attest-build-provenance@v1
+      - name: Publicar SBOM como artefacto
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.spdx.json
+
+      - name: Login en GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Publicar la misma imagen que aprobo el escaneo
+        if: github.event_name != 'pull_request'
+        id: push
+        run: |
+          docker push "${IMAGE}:${GITHUB_SHA}"
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}:${GITHUB_SHA}" | cut -d@ -f2)
+          test -n "$digest"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Attestation de procedencia
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
           subject-name: ${{ env.IMAGE }}
-          subject-digest: ${{ steps.build.outputs.digest }}
+          subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
       - name: Attestation del SBOM
-        uses: actions/attest-sbom@v1
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
         with:
           subject-name: ${{ env.IMAGE }}
-          subject-digest: ${{ steps.build.outputs.digest }}
+          subject-digest: ${{ steps.push.outputs.digest }}
           sbom-path: sbom.spdx.json
           push-to-registry: true
-
-      - name: Publicar SBOM como artefacto
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: sbom.spdx.json
