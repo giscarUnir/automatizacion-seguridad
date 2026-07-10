@@ -3,8 +3,10 @@ kind: Deployment
 metadata:
   name: cliente-service
   namespace: banco-x
+  annotations:
+    checkov.io/skip1: CKV_K8S_15=La imagen se fija por digest; descargarla siempre no agrega integridad.
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: cliente-service
@@ -13,23 +15,35 @@ spec:
       labels:
         app: cliente-service
     spec:
+      serviceAccountName: cliente-service
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: cliente-service
-          image: ghcr.io/OWNER/cliente-service:1.0.0
+          # CD reemplaza este valor por el digest real que aprobo Trivy y tiene attestation.
+          image: ghcr.io/OWNER/cliente-service@sha256:0000000000000000000000000000000000000000000000000000000000000000
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
             privileged: false
             capabilities:
               drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: "100m"
@@ -49,3 +63,7 @@ spec:
               port: 8080
             initialDelaySeconds: 20
             periodSeconds: 20
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi

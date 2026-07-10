@@ -4,6 +4,7 @@ metadata:
   name: cliente-service
   namespace: banco-x
 spec:
+  type: ClusterIP
   selector:
     app: cliente-service
   ports:

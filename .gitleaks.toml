@@ -3,8 +3,8 @@ title = "gitleaks - vitrina de seguridad Banco X"
 useDefault = true
 
 # En la rama principal, el generador de demo y la documentacion contienen
-# la llave de EJEMPLO de AWS; se excluyen por RUTA para no marcar falso positivo.
-# La rama demo escribe el secreto en src/main/resources (ruta NO excluida) -> si se detecta.
+# el generador de datos ficticios; se excluyen por RUTA para no marcar falso positivo.
+# La rama demo materializa el patron en src/main/resources (ruta NO excluida) y se detecta.
 [allowlist]
 description = "Excluir generador de demo y docs"
 paths = [
