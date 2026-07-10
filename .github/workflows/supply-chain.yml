@@ -1,5 +1,5 @@
 # Cadena de suministro: construye la imagen, la escanea (Trivy), genera SBOM
-# y firma la PROCEDENCIA con Artifact Attestations NATIVAS (SLSA build level 3).
+# y firma procedencia y SBOM con Artifact Attestations nativas (SLSA Build L2).
 name: supply-chain
 on:
   push:
@@ -86,7 +86,7 @@ jobs:
 
       - name: Attestation de procedencia
         if: github.event_name != 'pull_request'
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.push.outputs.digest }}
@@ -94,7 +94,7 @@ jobs:
 
       - name: Attestation del SBOM
         if: github.event_name != 'pull_request'
-        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.push.outputs.digest }}
