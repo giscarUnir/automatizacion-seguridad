@@ -8,7 +8,7 @@ RUN mvn -B -DskipTests package
 
 # Etapa de runtime mínima, sin shell ni gestor de paquetes y fijada por digest.
 # checkov:skip=CKV_DOCKER_2:La salud de la aplicacion se verifica con probes HTTP de Kubernetes.
-FROM gcr.io/distroless/java21-debian13@sha256:258e48dcf7e9441095e8332c654e5005b21cd06f610ca9807ccbb56a5da412f7
+FROM gcr.io/distroless/java21-debian13@sha256:27d6932e85923aa9baf382f3daed5a587fe764c4c5397a0fa085a3f1b8f637ec
 WORKDIR /work
 COPY --from=build --chown=65532:65532 /app/target/quarkus-app/ /work/
 USER 65532:65532
